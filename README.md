@@ -1,94 +1,107 @@
-using UnityEngine;
-
-public class PlayerMovement : MonoBehaviour
-{
-    public CharacterController controller;
-    public float speed = 6f;
-    public float gravity = -9.81f;
-    public float jumpHeight = 3f;
-
-    Vector3 velocity;
-    bool isGrounded;
-
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
-
-    void Update()
-    {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-
-        if(isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
-        }
-
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-
-        Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * speed * Time.deltaTime);
-
-        if(Input.GetButtonDown("Jump") && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
-    }
-}using UnityEngine;
-
-public class MouseLook : MonoBehaviour
-{
-    public float mouseSensitivity = 100f;
-    public Transform playerBody;
-
-    float xRotation = 0f;
-
-    void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-
-    void Update()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-        transform.localRotation = Quaternion.Euler(xRotation,0f,0f);
-        playerBody.Rotate(Vector3.up * mouseX);
-    }
-}using UnityEngine;
-
-public class GunSystem : MonoBehaviour
-{
-    public Camera fpsCam;
-    public float range = 100f;
-    public int damage = 25;
-
-    public ParticleSystem muzzleFlash;
-
-    void Update()
-    {
-        if(Input.GetButtonDown("Fire1"))
-        {
-            Shoot();
-        }
-    }
-
-    void Shoot()
-    {
-        muzzleFlash.Play();
-
-        RaycastHit hit;
-
-        if(Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
-        {
-            Debug.Log("Vuruldu: " + hit.transform.name);
-        }
-    }
+<!DOCTYPE html>
+<html>
+<head>
+<title>Shooter Game</title>
+<style>
+body{
+margin:0;
+background:black;
+overflow:hidden;
 }
+#player{
+width:40px;
+height:40px;
+background:blue;
+position:absolute;
+bottom:20px;
+left:50%;
+}
+.bullet{
+width:6px;
+height:12px;
+background:yellow;
+position:absolute;
+}
+.enemy{
+width:40px;
+height:40px;
+background:red;
+position:absolute;
+top:0;
+}
+</style>
+</head>
+<body>
+
+<div id="player"></div>
+
+<script>
+
+let player = document.getElementById("player");
+let playerX = window.innerWidth/2;
+
+document.addEventListener("keydown", function(e){
+
+if(e.key=="a") playerX -= 20;
+if(e.key=="d") playerX += 20;
+
+player.style.left = playerX + "px";
+
+if(e.key==" "){
+shoot();
+}
+
+});
+
+function shoot(){
+
+let bullet = document.createElement("div");
+bullet.className="bullet";
+
+bullet.style.left = (playerX+17)+"px";
+bullet.style.bottom="60px";
+
+document.body.appendChild(bullet);
+
+let move = setInterval(()=>{
+
+bullet.style.bottom = (parseInt(bullet.style.bottom)+10)+"px";
+
+if(parseInt(bullet.style.bottom)>window.innerHeight){
+bullet.remove();
+clearInterval(move);
+}
+
+},20);
+
+}
+
+function spawnEnemy(){
+
+let enemy = document.createElement("div");
+enemy.className="enemy";
+
+enemy.style.left = Math.random()*window.innerWidth+"px";
+enemy.style.top="0px";
+
+document.body.appendChild(enemy);
+
+let move = setInterval(()=>{
+
+enemy.style.top = (parseInt(enemy.style.top)+3)+"px";
+
+if(parseInt(enemy.style.top)>window.innerHeight){
+enemy.remove();
+clearInterval(move);
+}
+
+},20);
+
+}
+
+setInterval(spawnEnemy,1500);
+
+</script>
+
+</body>
+</html>
